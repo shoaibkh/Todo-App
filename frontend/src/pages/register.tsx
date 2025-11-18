@@ -1,0 +1,63 @@
+import React, { useContext, useState } from 'react';
+import Layout from '../components/Layout';
+import api from '../lib/api';
+import { AuthContext } from '../contexts/AuthContext';
+import { useRouter } from 'next/router';
+
+
+export default function RegisterPage() {
+    const { login } = useContext(AuthContext);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
+
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        try {
+            const res = await api.post('/users/register', { email, password, fullName: name });
+            const token = res.data.access_token;
+            login(token);
+            router.push('/');
+        } catch (err: any) {
+            setError(err?.response?.data?.message || 'register failed');
+        }
+    }
+
+
+    return (
+        <Layout>
+            <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
+                <h1 className="text-2xl mb-4">Register</h1>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm">Full Name</label>
+                        <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border p-2 rounded" />
+                    </div>
+                    <div>
+                        <label className="block text-sm">Email</label>
+                        <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border p-2 rounded" />
+                    </div>
+                    <div>
+                        <label className="block text-sm">Password</label>
+                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border p-2 rounded" />
+                    </div>
+                    {error && <div className="text-red-500">{error}</div>}
+                    <div>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded">Register</button>
+                    </div>
+                    <div>
+                        <p>Already have an account?</p>
+                    </div>
+                    <div>
+                        <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={() => router.push('/login')}>
+                            Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </Layout>
+    );
+}
